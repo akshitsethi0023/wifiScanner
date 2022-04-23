@@ -3,6 +3,8 @@ package com.example.wifiscanner;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
@@ -20,6 +22,8 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.wifiscanner.databinding.ActivityMainBinding;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,17 +35,32 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CAMERA_ID = 101;
     private ImageView imageView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         imageView = findViewById(R.id.cameraImage);
-        checkAndRequestPermissions(MainActivity.this);
+        if (checkAndRequestPermissions(MainActivity.this))
+            openScanner();
+
     }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
+        if (scanResult != null) {
+            
+        }
+        // else continue with any other code you need in the method
+
+    }
+
     public static boolean checkAndRequestPermissions(final Activity context) {
         int cameraPermission = ContextCompat.checkSelfPermission(context,
                 Manifest.permission.CAMERA);
@@ -67,14 +86,21 @@ public class MainActivity extends AppCompatActivity {
                             "ALERT: Access to Camera required.", Toast.LENGTH_LONG)
                             .show();
                 } else {
-                    saveImage(MainActivity.this);
+                    openScanner();
                 }
                 break;
         }
     }
-
-    public void saveImage(Context context){
-
+    public void openScanner(){
+        IntentIntegrator intentIntegrator = new IntentIntegrator(this);
+        List<String> listQrCode = new ArrayList<String>();
+        listQrCode.add(IntentIntegrator.QR_CODE);
+        intentIntegrator.setDesiredBarcodeFormats(listQrCode);
+        intentIntegrator.setOrientationLocked(true);
+        intentIntegrator.setPrompt("Scan QR Code of Wi-fi");
+        intentIntegrator.initiateScan();
     }
+
+
 
 }
